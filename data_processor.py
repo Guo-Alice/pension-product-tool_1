@@ -43,7 +43,7 @@ class PensionProductAnalyzer:
         """查找Excel文件"""
         possible_paths = [
             '养老保险.xlsx',  # 当前目录
-            'data/养老保险.xlsx',  # data子目录
+            'data1/养老保险.xlsx',  # data子目录
             '../养老保险.xlsx',  # 上级目录
             os.path.join(os.path.dirname(__file__), '养老保险.xlsx'),  # 脚本所在目录
             os.path.join(os.path.dirname(os.path.abspath(__file__)), '养老保险.xlsx')
@@ -848,4 +848,5 @@ def test_data_processor():
 
 
 if __name__ == "__main__":
+
     test_data_processor()
