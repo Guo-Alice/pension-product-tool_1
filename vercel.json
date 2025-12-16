@@ -6,9 +6,9 @@
       "use": "@vercel/python",
       "config": {
         "runtime": "python-3.9",
-        "pipInstall": true, 
-        "installCommand": "pip install --no-cache-dir -r dify_app/requirements.txt --ignore-installed tkinter",
-        "startCommand": "gunicorn dify_app.app:app"
+        "pipInstall": true,
+        "installCommand": "python -m pip install --upgrade pip && pip install --no-cache-dir -r dify_app/requirements.txt",
+        "startCommand": "gunicorn --bind 0.0.0.0:$PORT dify_app.app:app"
       }
     }
   ],
