@@ -1,4 +1,3 @@
-# dify_app/app.py
 """
 Dify平台适配的主应用
 """
@@ -20,18 +19,48 @@ recommender = None
 
 
 def init_system():
-    """初始化系统"""
+    """初始化系统（适配Vercel/本地，指向data1/insurance.xlsx）"""
     global analyzer, recommender
 
-    # 加载数据
-    data_path = os.getenv('DATA_PATH', '../data1/insurance.xlsx')
-    analyzer = PensionProductAnalyzer(data_path)
-    analyzer.process_data()
+    try:
+        # ========== 核心：适配Vercel/本地的Excel路径 ==========
+        if "VERCEL" in os.environ:  # 识别Vercel部署环境
+            # Vercel项目根路径固定为 /vercel/path0/
+            data_path = "/vercel/path0/data1/insurance.xlsx"
+        else:  # 本地运行环境
+            # 拼接本地路径：当前文件(dify_app) → 上级目录 → data1 → insurance.xlsx
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = os.path.dirname(current_dir)  # 上级目录（项目根）
+            data_path = os.path.join(project_root, "data1", "insurance.xlsx")
+        
+        # 打印关键日志（Vercel Runtime Logs可查）
+        print(f"📌 Excel文件路径：{data_path}")
+        print(f"📌 文件是否存在：{os.path.exists(data_path)}")
 
-    # 初始化推荐系统
-    recommender = PensionProductRecommender(analyzer)
+        # 验证文件存在性
+        if not os.path.exists(data_path):
+            print(f"❌ Excel文件不存在！路径：{data_path}")
+            return False
 
-    return True
+        # 加载数据（原有逻辑）
+        analyzer = PensionProductAnalyzer(data_path)
+        analyzer.process_data()
+
+        # 初始化推荐系统
+        recommender = PensionProductRecommender(analyzer)
+
+        print("✅ 系统初始化完成（Excel加载成功）")
+        return True
+    
+    except Exception as e:
+        print(f"❌ 系统初始化失败：{str(e)}")
+        analyzer = None
+        recommender = None
+        return False
+
+
+# ========== 关键修改：全局调用初始化（Vercel启动时自动执行） ==========
+init_system()
 
 
 @app.route('/health', methods=['GET'])
@@ -48,6 +77,10 @@ def health_check():
 def analyze_user():
     """分析用户需求并推荐产品"""
     try:
+        # 先检查系统是否初始化成功
+        if analyzer is None or recommender is None:
+            return jsonify({'error': '系统未初始化（Excel加载失败）'}), 500
+
         data = request.json
 
         # 验证必要参数
@@ -93,12 +126,12 @@ def analyze_user():
 def get_products():
     """获取产品列表"""
     try:
+        if analyzer is None or analyzer.processed_df is None:
+            return jsonify({'error': 'Data not loaded（Excel未加载）'}), 400
+
         page = int(request.args.get('page', 1))
         limit = int(request.args.get('limit', 20))
         search = request.args.get('search', '')
-
-        if analyzer is None or analyzer.processed_df is None:
-            return jsonify({'error': 'Data not loaded'}), 400
 
         df = analyzer.processed_df
 
@@ -132,6 +165,9 @@ def get_products():
 def get_product_detail(product_id):
     """获取产品详情"""
     try:
+        if analyzer is None:
+            return jsonify({'error': 'Data not loaded（Excel未加载）'}), 400
+            
         product = analyzer.get_product_details(product_id)
         if product:
             return jsonify(product)
@@ -145,6 +181,9 @@ def get_product_detail(product_id):
 def compare_products():
     """比较多个产品"""
     try:
+        if recommender is None:
+            return jsonify({'error': '系统未初始化（Excel未加载）'}), 500
+
         data = request.json
         product_ids = data.get('product_ids', [])
 
@@ -167,6 +206,9 @@ def compare_products():
 def get_personal_advice():
     """获取个性化建议"""
     try:
+        if recommender is None:
+            return jsonify({'error': '系统未初始化（Excel未加载）'}), 500
+
         data = request.json
         user_id = data.get('user_id')
 
@@ -180,11 +222,9 @@ def get_personal_advice():
         return jsonify({'error': str(e)}), 500
 
 
+# ========== 仅本地运行时执行（Vercel部署不触发） ==========
 if __name__ == '__main__':
-    # 初始化系统
-    init_system()
-    print("系统初始化完成")
-
-    # 启动服务
+    print("📌 本地运行模式 - 系统已初始化")
+    # 启动本地服务
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
