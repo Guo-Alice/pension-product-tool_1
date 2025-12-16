@@ -3,7 +3,12 @@
   "builds": [
     {
       "src": "dify_app/app.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "runtime": "python-3.9",
+        "installCommand": "pip install --no-cache-dir -r dify_app/requirements.txt",
+        "startCommand": "gunicorn dify_app.app:app"
+      }
     }
   ],
   "routes": [
