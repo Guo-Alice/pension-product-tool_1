@@ -1,0 +1,50 @@
+# dify_app/dify_tool_config.yaml
+name: 养老金产品推荐工具
+description: 基于用户画像的个性化养老保险产品推荐系统
+type: api
+api:
+  url: ${API_URL}/analyze
+  method: POST
+  headers:
+    Content-Type: application/json
+  parameters:
+    - name: age
+      type: number
+      required: true
+      description: 用户年龄
+    - name: annual_income
+      type: number
+      required: true
+      description: 年收入（万元）
+    - name: risk_tolerance
+      type: string
+      required: true
+      description: 风险承受能力（低/中低/中/中高/高）
+    - name: social_security_type
+      type: string
+      required: true
+      description: 社保类型（城镇职工/城乡居民/无/其他）
+    - name: expected_retirement_age
+      type: number
+      required: false
+      description: 预期退休年龄
+    - name: investment_amount
+      type: number
+      required: false
+      description: 计划投资金额（万元）
+    - name: location
+      type: string
+      required: false
+      description: 所在地区
+    - name: investment_horizon
+      type: string
+      required: false
+      description: 投资期限
+    - name: top_n
+      type: number
+      required: false
+      description: 返回推荐数量
+    - name: insurance_type
+      type: string
+      required: false
+      description: 保险类型过滤
