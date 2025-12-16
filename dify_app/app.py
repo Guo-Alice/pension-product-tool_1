@@ -24,7 +24,7 @@ def init_system():
     global analyzer, recommender
 
     # 加载数据
-    data_path = os.getenv('DATA_PATH', '../data/养老保险.xlsx')
+    data_path = os.getenv('DATA_PATH', '../data1/养老保险.xlsx')
     analyzer = PensionProductAnalyzer(data_path)
     analyzer.process_data()
 
