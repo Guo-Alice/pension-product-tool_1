@@ -6,7 +6,8 @@
       "use": "@vercel/python",
       "config": {
         "runtime": "python-3.9",
-        "installCommand": "pip install --no-cache-dir -r dify_app/requirements.txt",
+        "pipInstall": true,  // 关键：强制用pip安装，不用uv
+        "installCommand": "pip install --no-cache-dir -r dify_app/requirements.txt --ignore-installed tkinter",
         "startCommand": "gunicorn dify_app.app:app"
       }
     }
